@@ -12,7 +12,7 @@ admins = ['962211887', '415720787', '5629996816']
 
 TOKEN = '5766023354:AAG5cbHs3fFtJFxO9VplTbXkqxMQm6xWRA0'
 APP_URL = f'https://onlylabs.herokuapp.com/{TOKEN}'
-bot = telebot.TeleBot(TOKEN)
+bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
 db_con = psycopg2.connect(
     database="de68tv7tq8hv34",
     user="xjizawoqlhkpba",
@@ -387,7 +387,7 @@ def good_order(call):
     bot.send_message(id,
                      'Ты можешь отправить комментарии к заказу(например: какие задания надо выполнить) используя команду /comment (какой-то коммент)')
     bot.send_message(id,
-                     f'Если комментарии не нужны, сделай платеж на сумму {price}BYN через ЕРИП (Банковские, финансовые услуги - Банки, НКФО - Белинвестбанк - Пополнение счета) на номер 99oBYN-D9809D')
+                     f'Если комментарии не нужны, сделай платеж на сумму <b>{price}BYN</b> через ЕРИП (Банковские, финансовые услуги - Банки, НКФО - Белинвестбанк - Пополнение счета) на номер 99oBYN-D9809D')
     bot.send_message(id, 'Жду скриншот оплаты или твой коммент')
 
 
