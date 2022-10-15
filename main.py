@@ -302,12 +302,12 @@ def god_func(message):
             display_menu(id)
 
 
-def check_bucket(id, lab):
+def check_bucket(id, lab, output_subject):
     with open(f'cookies/buckets/{id}.json', 'r') as read_file:
         data = json.load(read_file)
         for c in range(1, data['count'] + 1):
             c = str(c)
-            if data[c]['lab'] == lab:
+            if data[c]['lab'] == lab and data[c]['subject'] == output_subject:
                 return True
         return False
 
@@ -365,7 +365,7 @@ def view_labs(call):
                 types.InlineKeyboardButton('Добавить', callback_data=f'add {output_subject[0]} {lab[1]} {lab[2]}'))
             inl_kb = types.InlineKeyboardMarkup().add(types.InlineKeyboardButton('✅Добавлено', callback_data='123'))
             bot.send_message(id, f"Предмет: {output_subject[0]}\nЛаба: №{lab[1]}\nЦена: {lab[2]}",
-                             reply_markup=inl_kb if check_bucket(id, lab[1]) else inl_add)
+                             reply_markup=inl_kb if check_bucket(id, lab[1], output_subject[0]) else inl_add)
     else:
         bot.send_message(id, 'Лаб для этого предмета нет(')
         display_menu(id)
