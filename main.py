@@ -324,16 +324,20 @@ def get_document(message):
         client_id = data['client_id']
         file_name = data['file_name']
     os.remove(f'cookies/{id}')
+    path = f'cookies/files/{datetime.datetime.now().strftime("%H%M%m%d%Y")}{message.document.file_name}'
+    with open(path, 'wb') as file:
+        file.write(downloaded_file)
     with open(f'cookies/orders/{file_name}', 'r') as file:
         info = json.load(file)
         msg = 'Выполнен заказ:\n' + print_orders(client_id, file_name)
         bot.send_message(client_id, msg)
-        bot.send_document(client_id, downloaded_file)
+        bot.send_document(client_id, open(path, 'rb'))
         display_menu(client_id)
         admin(id)
     db_cur.execute('UPDATE orders SET complete = %s WHERE file_name = %s', (True, file_name))
     db_cur.execute('DELETE FROM work_lab WHERE file_name = %s', (file_name,))
     db_con.commit()
+    os.remove(path)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('complete'))
