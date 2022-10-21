@@ -14,10 +14,10 @@ TOKEN = '5766023354:AAG5cbHs3fFtJFxO9VplTbXkqxMQm6xWRA0'
 APP_URL = f'https://onlylabs.herokuapp.com/{TOKEN}'
 bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
 db_con = psycopg2.connect(
-    database="de68tv7tq8hv34",
-    user="xjizawoqlhkpba",
-    password="7d7a93892b2072a50cf7567ead3d5f2ae589c098be91d31a5cbe264b0d774489",
-    host="ec2-54-76-43-89.eu-west-1.compute.amazonaws.com",
+    database="d1j96s7kqqtjqs",
+    user="jvvkhggpgkwspj",
+    password="66b6bd8a87c03eb0230601beb61d5d1958c9364569cf119ad23b518bdb20d6e2",
+    host="ec2-99-81-68-240.eu-west-1.compute.amazonaws.com",
     port="5432")
 db_cur = db_con.cursor()
 server = Flask(__name__)
