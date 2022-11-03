@@ -78,7 +78,7 @@ def all_send(message):
     db_cur.execute('SELECT client_id FROM clients')
     clients = db_cur.fetchall()
     for client in clients:
-        bot.send_message(client[0], message.text.split()[1])
+        bot.send_message(client[0], " ".join(message.text.split()[1:]))
 
 
 @bot.message_handler(commands=['start'])
