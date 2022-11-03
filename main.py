@@ -73,6 +73,14 @@ def print_orders(id, file_name):
         return labs + f'\nВариант {variant}\nСтоимость {data["total"]}BYN'
 
 
+@bot.message_handler(commands=['send'])
+def all_send(message):
+    db_cur.execute('SELECT client_id FROM clients')
+    clients = db_cur.fetchall()
+    for client in clients:
+        bot.send_message(client[0], message.text.split()[1])
+
+
 @bot.message_handler(commands=['start'])
 def start(message):
     id = message.chat.id
@@ -81,7 +89,7 @@ def start(message):
     else:
         if exists(id):
             bot.send_message(id,
-                             "Здесь ты можешь выбрать предмет и лабу, которая тебе нужна, оплатить по ЕРИПУ стоимость лабы, и ждать свою лабу")
+                             "Здесь ты можешь выбрать предмет и лабу, которая тебе нужна, оплатить (пока что наличными можно) стоимость лабы, и ждать свою лабу")
             bot.send_message(id, "Введи номер своего варианта(/var номер варианта, пример (/var 5))")
         else:
             bot.send_message(id, "Привет, давно тебя не видел")
@@ -105,7 +113,7 @@ def enter_commet(message):
     id = message.chat.id
     db_cur.execute('UPDATE orders SET comment = %s WHERE client_id = %s', (message.text[9:], str(id),))
     db_con.commit()
-    bot.send_message(id, 'Комментарии будут учтены, теперь точно жду скриншот оплаты)')
+    bot.send_message(id, 'Нажми кнопку ниже', reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text='Отправить', callback_data='send')))
 
 
 @bot.message_handler(content_types=['photo'])
@@ -218,8 +226,9 @@ def god_func(message):
             labs = db_cur.fetchall()
             if labs:
                 for lab in labs:
+                    b = types.InlineKeyboardButton('Отправить сообщение', callback_data=f'message {lab[0]}')
                     btn = types.InlineKeyboardButton('Сделано', callback_data=f'complete {lab[0]} {lab[1]}')
-                    kb = types.InlineKeyboardMarkup().add(btn)
+                    kb = types.InlineKeyboardMarkup().add(b, btn)
                     bot.send_message(id, print_orders(lab[0], lab[1]), reply_markup=kb)
             else:
                 bot.send_message(id, 'Лентяй, иди работать')
@@ -297,6 +306,9 @@ def god_func(message):
         elif message.text.lower() == 'юра лох':
             bot.send_message(id, 'Согласен')
             display_menu(id)
+        elif message.text == 'Настройки':
+            bot.send_message(id, "Ты можешь поменять свой вариант")
+            bot.send_message(id, 'Введи номер своего варианта(/var номер варианта, пример (/var 5))')
         else:
             bot.send_message(id, 'Хватит писать фигню, я тебя забаню!!!!!!')
             display_menu(id)
@@ -388,11 +400,12 @@ def good_order(call):
         shutil.copy(f'cookies/buckets/{id}.json', f'cookies/orders/{file_name}')
     with open(f'cookies/orders/{file_name}', 'r') as file:
         price = json.load(file)['total']
-    bot.send_message(id,
-                     'Ты можешь отправить комментарии к заказу(например: какие задания надо выполнить) используя команду /comment (какой-то коммент)')
-    bot.send_message(id,
+    #bot.send_message(id,
+    #                'Ты можешь отправить комментарии к заказу(например: какие задания надо выполнить) используя команду /comment (какой-то коммент)')
+    """bot.send_message(id,
                      f'Если комментарии не нужны, сделай платеж на сумму <b>{price}BYN</b> через ЕРИП (Банковские, финансовые услуги - Банки, НКФО - Белинвестбанк - Пополнение счета) на номер 99oBYN-D9809D')
-    bot.send_message(id, 'Жду скриншот оплаты или твой коммент')
+    bot.send_message(id, 'Жду скриншот оплаты или твой коммент')"""
+    bot.send_message(id, 'Нажми кнопку ниже', reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text='Отправить', callback_data=f'send {id} {file_name}')))
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('add'))
@@ -462,6 +475,34 @@ def entry_num(call):
     with open(f'cookies/{call.message.chat.id}.json', 'w') as write_file:
         json.dump(data, write_file)
     bot.send_message(id, "Введи номер лабы и цену (#номер цена)")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('send'))
+def ey_num(call):
+    info = call.data.split()[1:]
+    orders = print_orders(info[0], info[1])
+    clear_bucket(info[0])
+    bot.send_message(info[0], "Жди скоро мы сделаем твои лабы")
+    with open(f'cookies/orders/{info[1]}', 'r') as file:
+        data = json.load(file)
+        db_cur.execute('INSERT INTO work_lab(client_id, file_name, price) VALUES(%s, %s, %s)',
+                       (str(info[0]), info[1], data['total']))
+        db_con.commit()
+    with open(f'cookies/current_orders/{info[1]}', 'w') as id:
+        data = {}
+        for a in admins:
+            btn = types.InlineKeyboardButton('Взять', callback_data=f'{a} {info[0]} {info[1]}')
+            kb = types.InlineKeyboardMarkup().add(btn)
+            data[a] = (bot.send_message(a, orders, reply_markup=kb)).message_id
+        json.dump(data, id)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('message'))
+def send_mes(call):
+    id = call.data.split()[1]
+    bot.send_message(id, 'Напиши сюда @LabsHub, чтобы мы могли встретиться и ты заплатил за лабы, и потом мы отправим тебе лабу')
+
+
 
 
 @server.route(f'/{TOKEN}', methods=['POST'])
